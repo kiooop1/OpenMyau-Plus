@@ -10,7 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import myau.font.FontProcess;
 import myau.mixin.IAccessorGuiScreen;
-import myau.util.shader.impl.MainMenu;
+import myau.ui.impl.gui.BackgroundRenderer;
+import myau.ui.impl.gui.GuiBackgroundSelector;
+import myau.ui.impl.gui.ModernGuiButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
@@ -120,6 +122,9 @@ public class MyauMainMenu extends GuiScreen implements GuiYesNoCallback
 
         this.buttonList.add(new myau.util.shader.impl.GuiButton(0, this.width / 2 - 100, j + 72 + 12, 98, 20, I18n.format("menu.options", new Object[0])));
         this.buttonList.add(new myau.util.shader.impl.GuiButton(4, this.width / 2 + 2, j + 72 + 12, 98, 20, I18n.format("menu.quit", new Object[0])));
+        this.buttonList.add(new ModernGuiButton(15, this.width / 2 - 100, j + 72 + 36, 200, 20, "Background"));
+
+        BackgroundRenderer.init();
 
         synchronized (this.threadLock)
         {
@@ -200,6 +205,11 @@ public class MyauMainMenu extends GuiScreen implements GuiYesNoCallback
         if (button.id == 14)
         {
             this.mc.displayGuiScreen(new me.ksyz.accountmanager.gui.GuiAccountManager(this));
+        }
+
+        if (button.id == 15)
+        {
+            this.mc.displayGuiScreen(new GuiBackgroundSelector(this));
         }
 
         if (button.id == 11)
@@ -387,32 +397,14 @@ public class MyauMainMenu extends GuiScreen implements GuiYesNoCallback
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        GlStateManager.disableAlpha();
-        MainMenu.draw(initTime);
-        GlStateManager.enableAlpha();
-
-            FontProcess.getScaledFont("sans", 3.0f).drawCenteredString("OpenMyau+", this.width / 2, 35, -1);
-
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        int i = 274;
-        int j = this.width / 2 - i / 2;
-        int k = 30;
-        int l = -2130706433;
-        int i1 = 16777215;
-        int j1 = 0;
-        int k1 = Integer.MIN_VALUE;
-
-
-        if (l != 0 || i1 != 0)
-        {
-            this.drawGradientRect(0, 0, this.width, this.height, l, i1);
+        if (BackgroundRenderer.currentBackgroundIndex == BackgroundRenderer.BACKGROUND_CLASSIC) {
+            BackgroundRenderer.drawClassic(initTime);
+            this.drawGradientRect(0, 0, this.width, this.height, -2130706433, 16777215);
+        } else {
+            BackgroundRenderer.draw(this.width, this.height);
         }
 
-        if (j1 != 0 || k1 != 0)
-        {
-            this.drawGradientRect(0, 0, this.width, this.height, j1, k1);
-        }
+        FontProcess.getScaledFont("sans", 3.0f).drawCenteredString("OpenMyau+", this.width / 2, 35, -1);
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 

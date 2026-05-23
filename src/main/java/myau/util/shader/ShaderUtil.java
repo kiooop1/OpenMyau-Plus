@@ -150,4 +150,10 @@ public class ShaderUtil {
     public int getProgramID() {
         return this.programID;
     }
+
+    public void delete() {
+        if (this.programID != 0) {
+            GL20.glDeleteProgram(this.programID);
+        }
+    }
 }
