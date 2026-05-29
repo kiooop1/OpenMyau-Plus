@@ -24,12 +24,13 @@ loom {
     launchConfigs {
         "client" {
             // If you don't want mixins, remove these lines
-            property("mixin.debug", "true")
+            property("mixin.debug", "false")
             arg("--tweakClass", "org.spongepowered.asm.launch.MixinTweaker")
         }
     }
     runConfigs {
         "client" {
+            vmArgs.add("-Xmx2G")
             if (SystemUtils.IS_OS_MAC_OSX) {
                 // This argument causes a crash on macOSw
                 vmArgs.remove("-XstartOnFirstThread")

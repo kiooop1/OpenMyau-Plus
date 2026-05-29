@@ -52,6 +52,7 @@ import net.minecraft.util.ChatComponentText;
 
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final int MAX_DELAYED_PACKETS = 256;
     public final BooleanProperty lifeboat = new BooleanProperty("lifeboat", false);
     public final BooleanProperty startSprint = new BooleanProperty("start-sprint", true);
     public final BooleanProperty grimPlace = new BooleanProperty("grim-place", false);
@@ -250,6 +251,9 @@ public class Disabler extends Module {
 
                 if (packet instanceof S32PacketConfirmTransaction && this.shouldDelay) {
                     event.setCancelled(true);
+                    while (this.packets.size() >= MAX_DELAYED_PACKETS) {
+                        this.packets.poll();
+                    }
                     this.packets.add((Packet<INetHandlerPlayClient>) packet);
                 }
             }
