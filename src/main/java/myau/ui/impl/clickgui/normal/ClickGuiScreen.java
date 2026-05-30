@@ -127,8 +127,7 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(AntiDebuff.class),
                 Myau.moduleManager.getModule(FlagDetector.class),
                 Myau.moduleManager.getModule(AutoGapple.class),
-                Myau.moduleManager.getModule(ThrowAura.class),
-                Myau.moduleManager.getModule(PacketConsume.class)
+                Myau.moduleManager.getModule(ThrowAura.class)
         );
 
         List<Module> miscModules = Arrays.asList(

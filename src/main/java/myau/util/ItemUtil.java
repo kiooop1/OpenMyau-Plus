@@ -305,10 +305,16 @@ public class ItemUtil {
     }
 
     public static boolean hasRawUnbreakingEnchant() {
-        ItemStack itemStack = ItemUtil.mc.thePlayer.getHeldItem();
+        if (mc.thePlayer == null) {
+            return false;
+        }
+
+        ItemStack itemStack = mc.thePlayer.getHeldItem();
+
         if (itemStack == null) {
             return false;
         }
+
         if (itemStack.hasTagCompound()) {
             NBTTagCompound tag = itemStack.getTagCompound();
             if (tag.hasKey("ExtraAttributes")) {

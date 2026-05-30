@@ -120,7 +120,6 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(FlagDetector.class));  // i mean this use S08PacketPlayerPosLook so it suck
         playerModules.add(Myau.moduleManager.getModule(AutoGapple.class));
         playerModules.add(Myau.moduleManager.getModule(ThrowAura.class));
-        playerModules.add(Myau.moduleManager.getModule(PacketConsume.class));
 
         List<Module> miscModules = new ArrayList<>();
         miscModules.add(Myau.moduleManager.getModule(Spammer.class));

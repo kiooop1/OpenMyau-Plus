@@ -41,10 +41,15 @@ public class Hitflick extends Module {
     @Override
     public void onDisabled() {
         state = FlickState.IDLE;
+        sinceLastFlick = 0;
+        if (blink.getValue()) {
+            Myau.blinkManager.setBlinkState(false, BlinkModules.HITFLICK);
+        }
     }
 
     @EventTarget
     public void onAttack(AttackEvent event) {
+        if (!this.isEnabled()) return;
         if (event.getTarget() == null || event.getTarget() == mc.thePlayer) return;
         if (state != FlickState.IDLE || sinceLastFlick < cooldown.getValue()) return;
         if (!(event.getTarget() instanceof EntityLivingBase)) return;
@@ -61,6 +66,7 @@ public class Hitflick extends Module {
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
+        if (!this.isEnabled()) return;
         if (event.getType() != EventType.PRE) return;
         if (mc.thePlayer == null) return;
 

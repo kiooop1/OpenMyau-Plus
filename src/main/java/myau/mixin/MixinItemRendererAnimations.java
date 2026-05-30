@@ -2,10 +2,8 @@
 // Original logic by syuto/animations-1.6, integrated into Uzi
 package myau.mixin;
 
-import myau.Myau;
 import myau.config.AnimationConfig;
 import myau.config.AnimationMode;
-import myau.module.modules.PacketConsume;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemRenderer;
@@ -16,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -33,41 +30,20 @@ public abstract class MixinItemRendererAnimations {
     @Shadow
     protected abstract void transformFirstPersonItem(float equipProgress, float swingProgress);
 
-    @Shadow
-    protected abstract void func_178104_a(AbstractClientPlayer player, float partialTicks);
-
     @Redirect(
-        method = "renderItemInFirstPerson",
-        at = @At(value = "INVOKE",
-                 target = "Lnet/minecraft/client/renderer/ItemRenderer;transformFirstPersonItem(FF)V",
-                 ordinal = 2)
+            method = "renderItemInFirstPerson",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/ItemRenderer;transformFirstPersonItem(FF)V",
+                    ordinal = 2)
     )
     private void skipTransform(ItemRenderer instance, float f1, float f2) {
         // Suppressed — animations replaces this below
     }
 
-    @Redirect(
-        method = "renderItemInFirstPerson",
-        at = @At(value = "INVOKE",
-                 target = "Lnet/minecraft/client/renderer/ItemRenderer;func_178104_a(Lnet/minecraft/client/entity/AbstractClientPlayer;F)V")
-    )
-    private void onDrinkAnimation(AbstractClientPlayer player, float partialTicks) {
-        PacketConsume pc = (PacketConsume) Myau.moduleManager.modules.get(PacketConsume.class);
-        if (pc != null && pc.isEnabled()) {
-            return;
-        }
-        callSuperFunc_178104_a(player, partialTicks);
-    }
-
-    @Unique
-    private void callSuperFunc_178104_a(AbstractClientPlayer player, float partialTicks) {
-        func_178104_a(player, partialTicks);
-    }
-
     @Inject(
-        method = "renderItemInFirstPerson",
-        at = @At(value = "INVOKE",
-                 target = "Lnet/minecraft/client/renderer/ItemRenderer;doBlockTransformations()V")
+            method = "renderItemInFirstPerson",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/ItemRenderer;doBlockTransformations()V")
     )
     public void applyAnimTransform(float partialTicks, CallbackInfo ci) {
         if (!AnimationConfig.isEnabled()) return;
@@ -179,13 +155,13 @@ public abstract class MixinItemRendererAnimations {
     }
 
     @Inject(
-        method = "renderItemInFirstPerson",
-        at = @At(value = "INVOKE",
-                 target = "Lnet/minecraft/client/renderer/ItemRenderer;" +
-                          "renderItem(Lnet/minecraft/entity/EntityLivingBase;" +
-                          "Lnet/minecraft/item/ItemStack;" +
-                          "Lnet/minecraft/client/renderer/block/model/ItemCameraTransforms$TransformType;)V",
-                 shift = At.Shift.BEFORE)
+            method = "renderItemInFirstPerson",
+            at = @At(value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/ItemRenderer;" +
+                            "renderItem(Lnet/minecraft/entity/EntityLivingBase;" +
+                            "Lnet/minecraft/item/ItemStack;" +
+                            "Lnet/minecraft/client/renderer/block/model/ItemCameraTransforms$TransformType;)V",
+                    shift = At.Shift.BEFORE)
     )
     public void applyScale(float partialTicks, CallbackInfo ci) {
         if (!AnimationConfig.isEnabled()) return;
