@@ -14,19 +14,34 @@ import myau.util.font.impl.FontRenderer;
 import myau.font.CFontRenderer;
 import myau.font.CFont;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Color;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 import static net.minecraft.init.Items.string;
 
 public class WaterMark extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Exhibition", "Modern", "WeedHack"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Exhibition", "Modern", "WeedHack", "Vape"});
 
     public final TextProperty modernText = new TextProperty("Text", "OpenMyau+", () -> mode.getValue() == 1);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true, () -> mode.getValue() == 1);
     public final BooleanProperty enableGlow = new BooleanProperty("Glow", true);
+
+    // "VAPE V4" image watermark. The two PNGs live in
+    // assets/myau/assets/ and are drawn side-by-side to read as "VAPE V4".
+    private static final ResourceLocation VAPE_IMAGE = new ResourceLocation("myau", "assets/textvape.png");
+    private static final ResourceLocation V4_IMAGE = new ResourceLocation("myau", "assets/textv4.png");
+    private DynamicTexture vapeTexture, v4Texture;
+    private int vapeWidth, vapeHeight, v4Width, v4Height;
+    private boolean vapeImagesLoaded = false;
 
     public WaterMark() {
         super("WaterMark", false, false);
@@ -90,7 +105,77 @@ public class WaterMark extends Module {
             case 2:
                 renderWeedhackWatermark(4, 4);
                 break;
+            case 3:
+                renderVape(4.0f, 4.0f);
+                break;
         }
+    }
+
+    private void loadVapeImages() {
+        vapeImagesLoaded = true;
+        try {
+            BufferedImage image = ImageIO.read(
+                    mc.getResourceManager().getResource(VAPE_IMAGE).getInputStream()
+            );
+            vapeWidth = image.getWidth();
+            vapeHeight = image.getHeight();
+            vapeTexture = new DynamicTexture(image);
+        } catch (Exception e) {
+            vapeTexture = null;
+        }
+        try {
+            BufferedImage image = ImageIO.read(
+                    mc.getResourceManager().getResource(V4_IMAGE).getInputStream()
+            );
+            v4Width = image.getWidth();
+            v4Height = image.getHeight();
+            v4Texture = new DynamicTexture(image);
+        } catch (Exception e) {
+            v4Texture = null;
+        }
+    }
+
+    /**
+     * Renders the "VAPE" and "V4" PNGs next to each other so they read as
+     * "VAPE V4". Both images are scaled to a common height so they line up
+     * regardless of their native resolution.
+     */
+    private void renderVape(float x, float y) {
+        if (!vapeImagesLoaded) {
+            loadVapeImages();
+        }
+
+        final float targetHeight = 18.0f;
+        final float gap = 4.0f;
+
+        float cursorX = x;
+        cursorX = drawVapeImage(vapeTexture, vapeWidth, vapeHeight, cursorX, y, targetHeight);
+        cursorX += gap;
+        drawVapeImage(v4Texture, v4Width, v4Height, cursorX, y, targetHeight);
+    }
+
+    private float drawVapeImage(DynamicTexture texture, int width, int height, float x, float y, float targetHeight) {
+        if (texture == null || height <= 0) {
+            return x;
+        }
+
+        float scale = targetHeight / (float) height;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.enableBlend();
+        GlStateManager.enableTexture2D();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        GlStateManager.translate(x, y, 0.0f);
+        GlStateManager.scale(scale, scale, 1.0f);
+        GlStateManager.bindTexture(texture.getGlTextureId());
+        Gui.drawModalRectWithCustomSizedTexture(
+                0, 0, 0.0f, 0.0f, width, height, (float) width, (float) height
+        );
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
+
+        return x + (float) width * scale;
     }
 
     private void renderModern() {
