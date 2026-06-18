@@ -57,7 +57,8 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(Criticals.class),
                 Myau.moduleManager.getModule(BlockHit.class),
                 Myau.moduleManager.getModule(SprintReset.class),
-                Myau.moduleManager.getModule(Displace.class)
+                Myau.moduleManager.getModule(Displace.class),
+                Myau.moduleManager.getModule(TickBase.class)
         );
 
         List<Module> movementModules = Arrays.asList(
@@ -91,6 +92,7 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(Indicators.class),
                 Myau.moduleManager.getModule(BedESP.class),
                 Myau.moduleManager.getModule(ItemESP.class),
+                Myau.moduleManager.getModule(BreakProgress.class),
                 Myau.moduleManager.getModule(ViewClip.class),
                 Myau.moduleManager.getModule(NoHurtCam.class),
                 Myau.moduleManager.getModule(HUD.class),
@@ -115,6 +117,7 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(FakeLag.class),
                 Myau.moduleManager.getModule(AutoTool.class),
                 Myau.moduleManager.getModule(ChestStealer.class),
+                Myau.moduleManager.getModule(AutoBedDef.class),
                 Myau.moduleManager.getModule(InvManager.class),
                 Myau.moduleManager.getModule(InvWalk.class),
                 Myau.moduleManager.getModule(Scaffold.class),
@@ -127,12 +130,14 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(AntiDebuff.class),
                 Myau.moduleManager.getModule(FlagDetector.class),
                 Myau.moduleManager.getModule(AutoGapple.class),
+                Myau.moduleManager.getModule(AutoHeadHitter.class),
                 Myau.moduleManager.getModule(ThrowAura.class)
         );
 
         List<Module> miscModules = Arrays.asList(
                 Myau.moduleManager.getModule(Spammer.class),
                 Myau.moduleManager.getModule(BedNuker.class),
+                Myau.moduleManager.getModule(AntiBot.class),
                 Myau.moduleManager.getModule(BedTracker.class),
                 Myau.moduleManager.getModule(LightningTracker.class),
                 Myau.moduleManager.getModule(NoRotate.class),
@@ -366,6 +371,9 @@ public class ClickGuiScreen extends GuiScreen {
     public void onGuiClosed() {
         super.onGuiClosed();
         Module guiModule = Myau.moduleManager.getModule("ClickGUI");
+        if (guiModule instanceof ClickGUIModule && ((ClickGUIModule) guiModule).isSwitchingGuiStyle()) {
+            return;
+        }
         if (guiModule != null) {
             guiModule.setEnabled(false);
         }

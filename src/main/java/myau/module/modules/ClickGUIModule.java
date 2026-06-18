@@ -5,13 +5,17 @@ import myau.property.properties.BooleanProperty;
 import myau.property.properties.FloatProperty;
 import myau.property.properties.IntProperty;
 import myau.property.properties.ModeProperty;
-
-import java.awt.*;
+import myau.ui.ClickGui;
 import myau.ui.impl.clickgui.normal.ClickGuiScreen;
+import myau.ui.impl.clickgui.raven.RavenClickGui;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.input.Keyboard;
 
+import java.awt.*;
+
 public class ClickGUIModule extends Module {
+    private boolean switchingGuiStyle;
 
     // ── Color palette (same as TargetESP) ────────────────────────────────────
     private static final int[] COLORS = {
@@ -29,6 +33,7 @@ public class ClickGUIModule extends Module {
     };
 
     public ModeProperty accentColor = new ModeProperty("Color", 0, COLOR_NAMES);
+    public ModeProperty style = new ModeProperty("Style", 0, new String[]{"Normal", "Raven B3", "Raven B4"});
     public BooleanProperty saveGuiState = new BooleanProperty("Save GUI State", true);
     public BooleanProperty shadow = new BooleanProperty("Shadow", true);
 
@@ -47,6 +52,44 @@ public class ClickGUIModule extends Module {
         setKey(Keyboard.KEY_RSHIFT);
     }
 
+    public void openSelectedGui() {
+        Minecraft mc = Minecraft.getMinecraft();
+        GuiScreen screen = getSelectedGui();
+        this.switchingGuiStyle = mc.currentScreen instanceof ClickGui
+                || mc.currentScreen instanceof ClickGuiScreen
+                || mc.currentScreen instanceof RavenClickGui;
+        try {
+            mc.displayGuiScreen(screen);
+        } finally {
+            this.switchingGuiStyle = false;
+        }
+    }
+
+    public boolean isSwitchingGuiStyle() {
+        return switchingGuiStyle;
+    }
+
+    public GuiScreen getSelectedGui() {
+        if (style.getValue() == 1) {
+            return ClickGui.getInstance();
+        }
+        if (style.getValue() == 2) {
+            RavenClickGui raven = RavenClickGui.getInstance();
+            return raven != null ? raven : new RavenClickGui();
+        }
+        return ClickGuiScreen.getInstance();
+    }
+
+    @Override
+    public void verifyValue(String name) {
+        if ("Style".equalsIgnoreCase(name)) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.currentScreen instanceof ClickGui || mc.currentScreen instanceof ClickGuiScreen) {
+                openSelectedGui();
+            }
+        }
+    }
+
     @Override
     public void onEnabled() {
         super.onEnabled();
@@ -54,10 +97,7 @@ public class ClickGUIModule extends Module {
             this.setEnabled(false);
             return;
         }
-        ClickGuiScreen gui = ClickGuiScreen.getInstance();
-        if (gui != null) {
-            Minecraft.getMinecraft().displayGuiScreen(gui);
-        }
+        openSelectedGui();
     }
 
     @Override

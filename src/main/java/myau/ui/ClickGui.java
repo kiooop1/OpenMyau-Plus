@@ -10,6 +10,7 @@ import myau.module.modules.*;
 import myau.module.modules.Timer;
 import myau.ui.components.CategoryComponent;
 import net.minecraft.client.gui.GuiScreen;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import myau.font.CFontRenderer;
 
@@ -42,6 +43,7 @@ public class ClickGui extends GuiScreen {
         combatModules.add(Myau.moduleManager.getModule(TargetStrafe.class));
         combatModules.add(Myau.moduleManager.getModule(NoHitDelay.class));
         combatModules.add(Myau.moduleManager.getModule(AntiFireball.class));
+        combatModules.add(Myau.moduleManager.getModule(KnockbackDelay.class));
         combatModules.add(Myau.moduleManager.getModule(LagRange.class));
         combatModules.add(Myau.moduleManager.getModule(HitBox.class));
         combatModules.add(Myau.moduleManager.getModule(MoreKB.class));
@@ -54,6 +56,8 @@ public class ClickGui extends GuiScreen {
         combatModules.add(Myau.moduleManager.getModule(Criticals.class));
         combatModules.add(Myau.moduleManager.getModule(BlockHit.class));
         combatModules.add(Myau.moduleManager.getModule(SprintReset.class));
+        combatModules.add(Myau.moduleManager.getModule(Displace.class));
+        combatModules.add(Myau.moduleManager.getModule(TickBase.class));
 
         List<Module> movementModules = new ArrayList<>();
         movementModules.add(Myau.moduleManager.getModule(AntiAFK.class));
@@ -80,14 +84,18 @@ public class ClickGui extends GuiScreen {
         renderModules.add(Myau.moduleManager.getModule(Tracers.class));
         renderModules.add(Myau.moduleManager.getModule(NameTags.class));
         renderModules.add(Myau.moduleManager.getModule(Xray.class));
+        renderModules.add(Myau.moduleManager.getModule(TargetESP.class));
         renderModules.add(Myau.moduleManager.getModule(TargetHUD.class));
         renderModules.add(Myau.moduleManager.getModule(Indicators.class));
         renderModules.add(Myau.moduleManager.getModule(BedESP.class));
         renderModules.add(Myau.moduleManager.getModule(ItemESP.class));
+        renderModules.add(Myau.moduleManager.getModule(BreakProgress.class));
         renderModules.add(Myau.moduleManager.getModule(ViewClip.class));
         renderModules.add(Myau.moduleManager.getModule(NoHurtCam.class));
         renderModules.add(Myau.moduleManager.getModule(HUD.class));
         renderModules.add(Myau.moduleManager.getModule(GuiModule.class));
+        renderModules.add(Myau.moduleManager.getModule(RiseClickGUIModule.class));
+        renderModules.add(Myau.moduleManager.getModule(ClickGUIModule.class));
         renderModules.add(Myau.moduleManager.getModule(ChestESP.class));
         renderModules.add(Myau.moduleManager.getModule(Trajectories.class));
         renderModules.add(Myau.moduleManager.getModule(Radar.class));
@@ -107,6 +115,7 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(FakeLag.class));
         playerModules.add(Myau.moduleManager.getModule(AutoTool.class));
         playerModules.add(Myau.moduleManager.getModule(ChestStealer.class));
+        playerModules.add(Myau.moduleManager.getModule(AutoBedDef.class));
         playerModules.add(Myau.moduleManager.getModule(InvManager.class));
         playerModules.add(Myau.moduleManager.getModule(InvWalk.class));
         playerModules.add(Myau.moduleManager.getModule(Scaffold.class));
@@ -119,11 +128,13 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(AntiDebuff.class));
         playerModules.add(Myau.moduleManager.getModule(FlagDetector.class));  // i mean this use S08PacketPlayerPosLook so it suck
         playerModules.add(Myau.moduleManager.getModule(AutoGapple.class));
+        playerModules.add(Myau.moduleManager.getModule(AutoHeadHitter.class));
         playerModules.add(Myau.moduleManager.getModule(ThrowAura.class));
 
         List<Module> miscModules = new ArrayList<>();
         miscModules.add(Myau.moduleManager.getModule(Spammer.class));
         miscModules.add(Myau.moduleManager.getModule(BedNuker.class));
+        miscModules.add(Myau.moduleManager.getModule(AntiBot.class));
         miscModules.add(Myau.moduleManager.getModule(BedTracker.class));
         miscModules.add(Myau.moduleManager.getModule(LightningTracker.class));
         miscModules.add(Myau.moduleManager.getModule(NoRotate.class));
@@ -187,6 +198,9 @@ public class ClickGui extends GuiScreen {
     }
 
     public static ClickGui getInstance() {
+        if (instance == null) {
+            instance = new ClickGui();
+        }
         return instance;
     }
 
@@ -283,7 +297,8 @@ public class ClickGui extends GuiScreen {
     }
 
     public void keyTyped(char typedChar, int key) {
-        if (key == 1) {
+        Module clickGUIModule = Myau.moduleManager.getModule("ClickGUI");
+        if (key == Keyboard.KEY_ESCAPE || (clickGUIModule != null && key == clickGUIModule.getKey())) {
             this.mc.displayGuiScreen(null);
         } else {
             Iterator<CategoryComponent> btnCat = categoryList.iterator();
@@ -309,6 +324,14 @@ public class ClickGui extends GuiScreen {
 
     public void onGuiClosed() {
         savePositions();
+        Module clickGUIModule = Myau.moduleManager.getModule("ClickGUI");
+        if (clickGUIModule instanceof ClickGUIModule
+                && ((ClickGUIModule) clickGUIModule).isSwitchingGuiStyle()) {
+            return;
+        }
+        if (clickGUIModule != null) {
+            clickGUIModule.setEnabled(false);
+        }
     }
 
     public boolean doesGuiPauseGame() {
@@ -316,6 +339,10 @@ public class ClickGui extends GuiScreen {
     }
 
     private void savePositions() {
+        File parent = configFile.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
         JsonObject json = new JsonObject();
         for (CategoryComponent cat : categoryList) {
             JsonObject pos = new JsonObject();

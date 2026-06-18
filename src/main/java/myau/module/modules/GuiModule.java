@@ -1,5 +1,6 @@
 package myau.module.modules;
 
+import myau.Myau;
 import myau.module.Module;
 import myau.ui.impl.clickgui.normal.ClickGuiScreen;
 import net.minecraft.client.Minecraft;
@@ -16,7 +17,15 @@ public class GuiModule extends Module {
     @Override
     public void onEnabled() {
         setEnabled(false);
-        ClickGuiScreen gui = ClickGuiScreen.getInstance();
-        mc.displayGuiScreen(gui);
+        ClickGUIModule clickGui = (ClickGUIModule) Myau.moduleManager.getModule("ClickGUI");
+        if (clickGui != null) {
+            if (clickGui.isEnabled()) {
+                clickGui.openSelectedGui();
+            } else {
+                clickGui.setEnabled(true);
+            }
+            return;
+        }
+        mc.displayGuiScreen(ClickGuiScreen.getInstance());
     }
 }
