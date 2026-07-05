@@ -60,6 +60,7 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(SprintReset.class),
                 Myau.moduleManager.getModule(Displace.class),
                 Myau.moduleManager.getModule(Piercing.class),
+                Myau.moduleManager.getModule(Stasis.class),
                 Myau.moduleManager.getModule(TickBase.class)
         );
 
@@ -121,6 +122,7 @@ public class ClickGuiScreen extends GuiScreen {
                 Myau.moduleManager.getModule(FakeLag.class),
                 Myau.moduleManager.getModule(AutoTool.class),
                 Myau.moduleManager.getModule(ChestStealer.class),
+                Myau.moduleManager.getModule(ChestAura.class),
                 Myau.moduleManager.getModule(AutoBedDef.class),
                 Myau.moduleManager.getModule(InvManager.class),
                 Myau.moduleManager.getModule(InvWalk.class),

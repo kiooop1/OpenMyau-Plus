@@ -60,6 +60,7 @@ public class ClickGui extends GuiScreen {
         combatModules.add(Myau.moduleManager.getModule(Displace.class));
         combatModules.add(Myau.moduleManager.getModule(TickBase.class));
         combatModules.add(Myau.moduleManager.getModule(Piercing.class));
+        combatModules.add(Myau.moduleManager.getModule(Stasis.class));
 
         List<Module> movementModules = new ArrayList<>();
         movementModules.add(Myau.moduleManager.getModule(AntiAFK.class));
@@ -133,6 +134,7 @@ public class ClickGui extends GuiScreen {
         playerModules.add(Myau.moduleManager.getModule(FlagDetector.class));  // i mean this use S08PacketPlayerPosLook so it suck
         playerModules.add(Myau.moduleManager.getModule(AutoGapple.class));
         playerModules.add(Myau.moduleManager.getModule(AutoHeadHitter.class));
+        playerModules.add(Myau.moduleManager.getModule(ChestAura.class));
         playerModules.add(Myau.moduleManager.getModule(ThrowAura.class));
 
         List<Module> miscModules = new ArrayList<>();

@@ -62,7 +62,8 @@ public class KillAura extends Module {
     public final ModeProperty cpsMode;
     public final ModeProperty mode;
     public final ModeProperty sort;
-    public final ModeProperty autoBlock;
+    public ModeProperty autoBlock;
+    public final IntProperty attackTick = new IntProperty("AttackTick", 0, 1, 5, () -> this.autoBlock.getValue() == 6);
     public final BooleanProperty autoBlockRequirePress;
     public final FloatProperty autoBlockCPS;
     public final FloatProperty autoBlockRange;

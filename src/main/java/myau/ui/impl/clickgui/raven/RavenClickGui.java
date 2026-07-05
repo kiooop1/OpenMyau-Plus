@@ -62,7 +62,7 @@ public class RavenClickGui extends GuiScreen {
                 Reach.class, TargetStrafe.class, NoHitDelay.class, AntiFireball.class, KnockbackDelay.class,
                 LagRange.class, HitBox.class, MoreKB.class, Refill.class, HitSelect.class, BackTrack.class,
                 Hitflick.class, TimerRange.class, ClickAssits.class, Criticals.class, BlockHit.class,
-                SprintReset.class, Displace.class, TickBase.class, Piercing.class);
+                SprintReset.class, Displace.class, TickBase.class, Piercing.class, Stasis.class);
         List<Module> movementModules = collect(
                 AntiAFK.class, Fly.class, FastBow.class, myau.module.modules.Timer.class, Speed.class, LongJump.class,
                 Sprint.class, SafeWalk.class, Jesus.class, Blink.class, NoFall.class, NoSlow.class, KeepSprint.class,
@@ -77,7 +77,7 @@ public class RavenClickGui extends GuiScreen {
         List<Module> playerModules = collect(
                 AutoHeal.class, FakeLag.class, AutoTool.class, ChestStealer.class, AutoBedDef.class, InvManager.class,
                 InvWalk.class, Scaffold.class, AutoBlockIn.class, AutoSwap.class, SpeedMine.class, FastPlace.class,
-                GhostHand.class, MCF.class, AntiDebuff.class, FlagDetector.class, AutoGapple.class,
+                GhostHand.class, MCF.class, AntiDebuff.class, FlagDetector.class, AutoGapple.class, ChestAura.class,
                 AutoHeadHitter.class, ThrowAura.class);
         List<Module> miscModules = collect(
                 Spammer.class, BedNuker.class, AntiBot.class, BedTracker.class, LightningTracker.class, NoRotate.class,

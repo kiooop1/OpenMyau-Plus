@@ -37,6 +37,7 @@ public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int ROTATION_SNAP = 7;
     private static final int ROTATION_THREE_FMC = 8;
+    private static final int ROTATION_SNAP2 = 9;
     private static final double[] placeOffsets = new double[]{
             0.03125,
             0.09375,
@@ -82,7 +83,7 @@ public class Scaffold extends Module {
     private int threeFmcPlaceCooldown = 0;
     private float lastSnapPlaceYaw = Float.NaN;
     private float lastSnapPlacePitch = Float.NaN;
-    public final ModeProperty rotationMode = new ModeProperty("rotations", 2, new String[]{"NONE", "DEFAULT", "BACKWARDS", "SIDEWAYS", "GODBIRGDE", "SMOOTH", "Hypixel", "SNAP", "3FMC"});
+    public final ModeProperty rotationMode = new ModeProperty("rotations", 2, new String[]{"NONE", "DEFAULT", "BACKWARDS", "SIDEWAYS", "GODBIRGDE", "SMOOTH", "Hypixel", "SNAP", "3FMC", "SNAP2"});
     public final FloatProperty tellystartrotationminspeed = new FloatProperty("telly-start-rotation-min-speed", 90.0F, 1.0F, 180.0F, () -> this.keepY.getValue() == 3 || this.keepY.getValue() == 4);
     public final FloatProperty tellystartrotationmaxspeed = new FloatProperty("telly-start-rotation-max-speed", 95.0F, 1.0F, 180.0F, () -> this.keepY.getValue() == 3 || this.keepY.getValue() == 4);
     public final FloatProperty tellynormalrotationminspeed = new FloatProperty("telly-normal-rotation-min-speed", 30.0F, 1.0F, 180.0F, () -> this.keepY.getValue() == 3 || this.keepY.getValue() == 4);
@@ -188,7 +189,7 @@ public class Scaffold extends Module {
         if (mc.thePlayer.onGround) {
             return Math.abs(mc.thePlayer.motionY) < 1.0E-4 && this.threeFmcGroundTicks > 0;
         }
-        return this.threeFmcAirTicks > 1;
+        return this.isThreeFmcTellyMode() ? this.threeFmcAirTicks > 1 : this.threeFmcAirTicks > 2;
     }
 
     private EnumFacing getBestFacing(BlockPos blockPos1, BlockPos blockPos3) {
@@ -518,7 +519,7 @@ public class Scaffold extends Module {
                 float diagonalYaw = this.isDiagonal(currentYaw)
                         ? yawDiffTo180
                         : RotationUtil.wrapAngleDiff(currentYaw - 135.0F * ((currentYaw + 180.0F) % 90.0F < 45.0F ? 1.0F : -1.0F), event.getYaw());
-                boolean snapMode = this.rotationMode.getValue() == ROTATION_SNAP;
+                boolean snapMode = this.rotationMode.getValue() == ROTATION_SNAP || this.rotationMode.getValue() == ROTATION_SNAP2;
                 boolean threeFmcMode = this.rotationMode.getValue() == ROTATION_THREE_FMC;
                 boolean threeFmcTelly = this.isThreeFmcTellyMode();
                 this.snapRotating = false;
@@ -589,6 +590,7 @@ public class Scaffold extends Module {
                             }
                             break;
                         case ROTATION_SNAP:
+                        case ROTATION_SNAP2:
                             this.yaw = RotationUtil.quantizeAngle(yawDiffTo180);
                             this.pitch = RotationUtil.quantizeAngle(85.0F);
                             break;
@@ -678,8 +680,9 @@ public class Scaffold extends Module {
                             MovingObjectPosition snapMop = this.getPlacementMop(blockData, this.yaw, this.pitch);
                             hitVec = snapMop != null ? snapMop.hitVec : currentMop.hitVec;
                             this.snapRotating = true;
-                            if (this.rotationTick > 1) {
-                                this.rotationTick = 1;
+                            int snapDelay = this.rotationMode.getValue() == ROTATION_SNAP2 ? 0 : 1;
+                            if (this.rotationTick > snapDelay) {
+                                this.rotationTick = snapDelay;
                             }
                         }
                     } else if (hitVec != null && this.canRotate) {
@@ -695,8 +698,9 @@ public class Scaffold extends Module {
                                 hitVec = snapMop.hitVec;
                             }
                             this.snapRotating = true;
-                            if (this.rotationTick > 1) {
-                                this.rotationTick = 1;
+                            int snapDelay = this.rotationMode.getValue() == ROTATION_SNAP2 ? 0 : 1;
+                            if (this.rotationTick > snapDelay) {
+                                this.rotationTick = snapDelay;
                             }
                         }
                     }
