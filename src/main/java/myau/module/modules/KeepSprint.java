@@ -8,18 +8,24 @@ import net.minecraft.client.Minecraft;
 public class KeepSprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    // ———— 原 Rise 的全部属性 ————
-    public final PercentProperty slowDownVelocity = new PercentProperty("Hit Slow Down During Velocity", 0.6);
-    public final PercentProperty slowDownNormal = new PercentProperty("Hit Slow Down Normal", 0.6);
-    public final PercentProperty bufferDecrease = new PercentProperty("Buffer Decrease", 1.0);
-    public final PercentProperty maxBuffer = new PercentProperty("Max Buffer", 5.0);
+    // ========== 原有字段（保持兼容，供其他模块调用） ==========
+    public final PercentProperty slowdown = new PercentProperty("slowdown", 0);
+    public final BooleanProperty groundOnly = new BooleanProperty("ground-only", false);
+    public final BooleanProperty reachOnly = new BooleanProperty("reach-only", false);
+
+    // ========== Rise 新增字段（所有功能完整保留） ==========
+    // PercentProperty 接受 int，所以传入 60 表示 60%，对应原 0.6
+    public final PercentProperty slowDownVelocity = new PercentProperty("Hit Slow Down During Velocity", 60);
+    public final PercentProperty slowDownNormal = new PercentProperty("Hit Slow Down Normal", 60);
+    public final PercentProperty bufferDecrease = new PercentProperty("Buffer Decrease", 100);   // 1.0 → 100%
+    public final PercentProperty maxBuffer = new PercentProperty("Max Buffer", 500);            // 5.0 → 500%
 
     public final BooleanProperty sprintSlowDownVelocity = new BooleanProperty("Velocity Hit Sprint", false);
     public final BooleanProperty sprintSlowDownNormal = new BooleanProperty("Normal Hit Sprint", false);
     public final BooleanProperty bufferAbuse = new BooleanProperty("Buffer Abuse", false);
     public final BooleanProperty onlyInAir = new BooleanProperty("Only In Air", false);
 
-    // ———— 原 Rise 的状态变量（By / Bz） ————
+    // ========== 原 Rise 的状态变量 ==========
     public boolean hitFlag;      // 对应 By
     public double bufferCount;   // 对应 Bz
 
@@ -27,21 +33,43 @@ public class KeepSprint extends Module {
         super("KeepSprint", false);
     }
 
+    @Override
+    public boolean shouldKeepSprint() {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            return false;
+        }
+
+        // 原有 groundOnly 逻辑
+        if (groundOnly.getValue() && !mc.thePlayer.onGround) {
+            return false;
+        }
+
+        // 原有 reachOnly 逻辑
+        if (reachOnly.getValue()) {
+            if (mc.objectMouseOver == null || mc.objectMouseOver.hitVec == null) {
+                return false;
+            }
+            double distance = mc.objectMouseOver.hitVec.distanceTo(
+                    mc.getRenderViewEntity().getPositionEyes(1.0F)
+            );
+            return distance > 3.0;
+        }
+
+        return true;
+    }
+
     /**
-     * 原 Rise 的事件监听器逻辑全部移植到此处（每帧执行）
-     * 若你的 Myau 客户端有 onUpdate / onTick 钩子，此方法会被自动调用；
-     * 若没有，你可以在模块的 onEnable 中手动向事件总线注册一个 Tick 监听。
+     * Rise 完整功能：每帧执行（需在你的客户端主循环中调用）
      */
     public void onUpdate() {
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        // —— 原条件：只在不满足 "在空中且 onlyInAir 开启" 时执行 ——
-        // 即：当 玩家在地上 且 onlyInAir 为 true 时，直接返回（不做任何修改）
+        // —— 当 玩家在地上 且 onlyInAir 为 true 时，直接返回 ——
         if (mc.thePlayer.onGround && onlyInAir.getValue()) {
             return;
         }
 
-        // —— 缓冲（Buffer Abuse）逻辑（完全复刻） ——
+        // —— 缓冲（Buffer Abuse）逻辑 ——
         if (bufferAbuse.getValue()) {
             if (bufferCount < maxBuffer.getValue() && !hitFlag) {
                 bufferCount++;
@@ -49,7 +77,7 @@ public class KeepSprint extends Module {
                 if (bufferCount > 0) {
                     bufferCount = Math.max(0, bufferCount - bufferDecrease.getValue());
                     hitFlag = true;
-                    return;  // 原代码在此处 return，不执行下面的减速/疾跑设置
+                    return;
                 }
                 hitFlag = false;
             }
@@ -59,36 +87,31 @@ public class KeepSprint extends Module {
         }
 
         // —— 受伤 / 正常状态下的减速与疾跑控制 ——
-        if (mc.thePlayer.hurtTime > 0) {
-            // 等效于 var1.setSlowDown(slowDownVelocity)
-            double factor = slowDownVelocity.getValue();
-            mc.thePlayer.motionX *= factor;
-            mc.thePlayer.motionZ *= factor;
+        // 将百分比转为小数（60 → 0.6）
+        double velocityFactor = slowDownVelocity.getValue().doubleValue() / 100.0;
+        double normalFactor = slowDownNormal.getValue().doubleValue() / 100.0;
 
-            // 等效于 var1.setSprint(sprintSlowDownVelocity)
+        if (mc.thePlayer.hurtTime > 0) {
+            mc.thePlayer.motionX *= velocityFactor;
+            mc.thePlayer.motionZ *= velocityFactor;
             mc.thePlayer.setSprinting(sprintSlowDownVelocity.getValue());
         } else {
-            double factor = slowDownNormal.getValue();
-            mc.thePlayer.motionX *= factor;
-            mc.thePlayer.motionZ *= factor;
-
+            mc.thePlayer.motionX *= normalFactor;
+            mc.thePlayer.motionZ *= normalFactor;
             mc.thePlayer.setSprinting(sprintSlowDownNormal.getValue());
         }
     }
 
     /**
-     * 原 Myau 模块的保留方法，用于外部判断是否保持疾跑。
-     * 为了与 onUpdate 中的手动设置保持一致，这里返回当前应该疾跑的状态。
+     * 获取当前应该使用的减速值（供外部调用，如 PlayerUtil 等）
+     * 兼容原有 slowDown 字段，返回百分比值
      */
-    @Override
-    public boolean shouldKeepSprint() {
-        if (mc.thePlayer == null) return false;
-        // 如果仅空中开启且玩家在空中，则沿用原疾跑逻辑（这里我们返回 true，因为 onUpdate 会控制）
-        // 但为了让外部调用也能得到正确值，我们根据 hurtTime 和对应布尔值返回
+    public double getCurrentSlowdown() {
+        if (mc.thePlayer == null) return slowdown.getValue().doubleValue();
         if (mc.thePlayer.hurtTime > 0) {
-            return sprintSlowDownVelocity.getValue();
+            return slowDownVelocity.getValue().doubleValue();
         } else {
-            return sprintSlowDownNormal.getValue();
+            return slowDownNormal.getValue().doubleValue();
         }
     }
-}
+                }
